@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.5" />
+    <title>SSE Variable Chunks Demo</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎲</text></svg>"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="/static/css/output.css" rel="stylesheet" />
+    <style>
+      body {
+        font-family: "Silkscreen", cursive;
+      }
+      /* Fix emoji rendering */
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      p,
+      span,
+      button,
+      div {
+        font-family: "Silkscreen", "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol", "Noto Color Emoji", cursive;
+      }
+      button {
+        transition: all 0.2s ease;
+      }
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        animation: twinkle 3s infinite;
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      .slide-in {
+        animation: slideIn 0.3s ease-out;
+      }
+    </style>
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        createStarfield();
+      });
+
+      function createStarfield() {
+        const starfield = document.getElementById("starfield");
+        const starCount = 100;
+
+        for (let i = 0; i < starCount; i++) {
+          const star = document.createElement("div");
+          star.className = "star";
+          star.style.left = Math.random() * 100 + "%";
+          star.style.top = Math.random() * 100 + "%";
+          star.style.width = Math.random() * 2 + 1 + "px";
+          star.style.height = star.style.width;
+          star.style.animationDelay = Math.random() * 3 + "s";
+          starfield.appendChild(star);
+        }
+      }
+    </script>
+  </head>
+  <body class="bg-slate-950 min-h-screen relative overflow-x-hidden">
+    <div class="fixed inset-0 z-0 opacity-50">
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950"
+      ></div>
+      <div id="starfield" class="absolute inset-0"></div>
+    </div>
+    <div class="container mx-auto px-4 py-8 relative z-10 max-w-6xl">
+      <div class="mb-6">
+        <a href="/" class="text-slate-400 hover:text-slate-200 text-sm"
+          >← Back to Home</a
+        >
+      </div>
+
+      <header class="text-center mb-8">
+        <h1 class="text-4xl font-bold mb-2" style="color: #bf7523">
+          🎲 SSE Variable Chunks Demo
+        </h1>
+        <p class="text-slate-400">Chunked Transfer Encoding with Variable-Sized Data</p>
+        <p class="text-xs font-mono text-slate-500 mt-2">GET /sse/variable-chunks</p>
+      </header>
+
+      <!-- Description -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6 mb-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <p class="text-sm text-slate-300 mb-3">
+          This endpoint demonstrates Server-Sent Events using <strong>chunked transfer encoding</strong> with exponentially growing data sizes.
+        </p>
+        <div class="bg-green-900/30 rounded p-3">
+          <p class="text-xs text-green-300 mb-2">
+            💡 <strong>What You'll See:</strong>
+          </p>
+          <ul class="text-xs text-green-300 list-disc list-inside space-y-1">
+            <li>10 messages with exponentially increasing sizes (1, 10, 100, 1000... items)</li>
+            <li>HTTP chunked encoding automatically used (no Content-Length header)</li>
+            <li>Variable delays that increase with chunk size</li>
+            <li>Real-time visualization of chunk sizes</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Controls & Stats -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6 mb-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold" style="color: #bf7523">Controls</h2>
+          <span
+            id="status"
+            class="text-xs px-3 py-1 rounded bg-red-900/30 text-red-300"
+            >Disconnected</span
+          >
+        </div>
+        <div class="mb-4">
+          <button
+            id="connectBtn"
+            onclick="connect()"
+            class="hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded mr-2"
+            style="background-color: #bf7523"
+          >
+            Connect & Stream
+          </button>
+          <button
+            id="disconnectBtn"
+            onclick="disconnect()"
+            disabled
+            class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Disconnect
+          </button>
+          <button
+            onclick="clearMessages()"
+            class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded"
+          >
+            Clear All
+          </button>
+        </div>
+
+        <div class="grid grid-cols-4 gap-4">
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div
+              id="messageCount"
+              class="text-2xl font-bold"
+              style="color: #bf7523"
+            >
+              0
+            </div>
+            <div class="text-xs text-slate-500">Messages</div>
+          </div>
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div
+              id="totalBytes"
+              class="text-2xl font-bold"
+              style="color: #bf7523"
+            >
+              0
+            </div>
+            <div class="text-xs text-slate-500">Total Bytes</div>
+          </div>
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div
+              id="largestChunk"
+              class="text-2xl font-bold"
+              style="color: #bf7523"
+            >
+              0
+            </div>
+            <div class="text-xs text-slate-500">Largest (bytes)</div>
+          </div>
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div
+              id="activeConnection"
+              class="text-2xl font-bold"
+              style="color: #bf7523"
+            >
+              No
+            </div>
+            <div class="text-xs text-slate-500">Active</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6 mb-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <h2 class="text-xl font-bold mb-4" style="color: #bf7523">
+          Chunk Size Visualization
+        </h2>
+        <div id="barChart" class="space-y-2"></div>
+      </div>
+
+      <!-- Events -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <h2 class="text-xl font-bold mb-4" style="color: #bf7523">
+          Events Received
+        </h2>
+        <div
+          id="events"
+          class="max-h-[600px] overflow-y-auto space-y-3"
+        ></div>
+      </div>
+    </div>
+
+    <script>
+      let eventSource = null;
+      let messageCount = 0;
+      let totalBytes = 0;
+      let largestChunk = 0;
+      const chunkSizes = [];
+
+      function updateStats() {
+        document.getElementById("messageCount").textContent = messageCount;
+        document.getElementById("totalBytes").textContent = totalBytes.toLocaleString();
+        document.getElementById("largestChunk").textContent = largestChunk.toLocaleString();
+        document.getElementById("activeConnection").textContent = eventSource ? "Yes" : "No";
+      }
+
+      function updateStatus(status) {
+        const statusEl = document.getElementById("status");
+        if (status === "connected") {
+          statusEl.className = "text-xs px-3 py-1 rounded bg-green-900/30 text-green-300";
+          statusEl.textContent = "Connected";
+        } else if (status === "connecting") {
+          statusEl.className = "text-xs px-3 py-1 rounded bg-orange-900/30 text-orange-300";
+          statusEl.textContent = "Connecting";
+        } else if (status === "completed") {
+          statusEl.className = "text-xs px-3 py-1 rounded bg-blue-900/30 text-blue-300";
+          statusEl.textContent = "Completed";
+        } else {
+          statusEl.className = "text-xs px-3 py-1 rounded bg-red-900/30 text-red-300";
+          statusEl.textContent = "Disconnected";
+        }
+      }
+
+      function updateChart() {
+        const chart = document.getElementById("barChart");
+        chart.innerHTML = "";
+
+        if (chunkSizes.length === 0) {
+          chart.innerHTML = '<div class="text-slate-500 text-sm">No data yet...</div>';
+          return;
+        }
+
+        const maxSize = Math.max(...chunkSizes);
+
+        chunkSizes.forEach((size, index) => {
+          const barItem = document.createElement("div");
+          barItem.className = "flex items-center gap-2";
+
+          const label = document.createElement("div");
+          label.className = "text-xs text-slate-400 w-20";
+          label.textContent = `Msg ${index + 1}`;
+
+          const wrapper = document.createElement("div");
+          wrapper.className = "flex-1 bg-slate-900/50 rounded h-6 relative overflow-hidden";
+
+          const fill = document.createElement("div");
+          fill.className = "h-full rounded flex items-center justify-end px-2";
+          fill.style.backgroundColor = "#bf7523";
+          const percentage = (size / maxSize) * 100;
+          fill.style.width = percentage + "%";
+          fill.style.transition = "width 0.5s ease-out";
+
+          const sizeLabel = document.createElement("span");
+          sizeLabel.className = "text-xs text-slate-950 font-bold";
+          sizeLabel.textContent = size.toLocaleString() + "B";
+          fill.appendChild(sizeLabel);
+
+          wrapper.appendChild(fill);
+          barItem.appendChild(label);
+          barItem.appendChild(wrapper);
+          chart.appendChild(barItem);
+        });
+      }
+
+      function addMessage(type, data) {
+        const eventsDiv = document.getElementById("events");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "border-2 rounded p-4 bg-slate-900/30 slide-in";
+        messageDiv.style.borderColor = "rgba(191, 117, 35, 0.3)";
+
+        if (type === "complete") {
+          messageDiv.style.borderColor = "#38ef7d";
+          messageDiv.style.backgroundColor = "rgba(56, 239, 125, 0.1)";
+          messageDiv.innerHTML = `
+            <div class="text-center">
+              <div class="text-xl text-green-400 mb-2">✅ ${data.message}</div>
+              <div class="text-xs text-green-300">${data.note}</div>
+            </div>
+          `;
+        } else {
+          const timestamp = new Date(data.timestamp).toLocaleTimeString();
+          messageDiv.innerHTML = `
+            <div class="flex justify-between items-start mb-2">
+              <div class="text-sm" style="color: #bf7523">${data.message}</div>
+              <div class="text-xs text-slate-500">${timestamp}</div>
+            </div>
+            <div class="bg-slate-950/80 rounded p-3 text-xs">
+              <div class="text-purple-300 mb-1">📦 <strong>Chunk Info:</strong></div>
+              <div class="text-slate-300 space-y-1 font-mono">
+                <div>Data Items: ${data.chunkSize?.toLocaleString() || 'N/A'}</div>
+                <div>Chunk Size: ${data.chunkSizeBytes?.toLocaleString() || 'N/A'} bytes</div>
+                <div class="text-xs text-slate-500">Event ID: ${data.id}</div>
+              </div>
+            </div>
+          `;
+
+          // Track stats
+          if (data.chunkSizeBytes) {
+            totalBytes += data.chunkSizeBytes;
+            largestChunk = Math.max(largestChunk, data.chunkSizeBytes);
+            chunkSizes.push(data.chunkSizeBytes);
+            updateChart();
+          }
+        }
+
+        eventsDiv.insertBefore(messageDiv, eventsDiv.firstChild);
+      }
+
+      function connect() {
+        if (eventSource) {
+          disconnect();
+        }
+
+        messageCount = 0;
+        totalBytes = 0;
+        largestChunk = 0;
+        chunkSizes.length = 0;
+        updateStats();
+        updateChart();
+        updateStatus("connecting");
+
+        eventSource = new EventSource("/sse/variable-chunks");
+
+        eventSource.addEventListener("chunk", (e) => {
+          messageCount++;
+          const data = JSON.parse(e.data);
+          addMessage("chunk", data);
+          updateStats();
+          updateStatus("connected");
+        });
+
+        eventSource.addEventListener("complete", (e) => {
+          const data = JSON.parse(e.data);
+          addMessage("complete", data);
+          updateStatus("completed");
+          setTimeout(() => {
+            disconnect();
+          }, 2000);
+        });
+
+        eventSource.onopen = () => {
+          updateStatus("connected");
+          console.log("SSE connection opened");
+        };
+
+        eventSource.onerror = (error) => {
+          console.error("SSE error:", error);
+          if (eventSource.readyState === EventSource.CLOSED) {
+            updateStatus("disconnected");
+          }
+        };
+
+        document.getElementById("connectBtn").disabled = true;
+        document.getElementById("disconnectBtn").disabled = false;
+      }
+
+      function disconnect() {
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+        updateStatus("disconnected");
+        updateStats();
+        document.getElementById("connectBtn").disabled = false;
+        document.getElementById("disconnectBtn").disabled = true;
+      }
+
+      function clearMessages() {
+        document.getElementById("events").innerHTML = "";
+        messageCount = 0;
+        totalBytes = 0;
+        largestChunk = 0;
+        chunkSizes.length = 0;
+        updateStats();
+        updateChart();
+      }
+
+      // Initialize
+      updateStats();
+      updateChart();
+    </script>
+  </body>
+</html>

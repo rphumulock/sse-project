@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.5" />
+    <title>SSE Multiple Messages Demo</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="/static/css/output.css" rel="stylesheet" />
+    <style>
+      body {
+        font-family: "Silkscreen", cursive;
+      }
+      /* Fix emoji rendering */
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      p,
+      span,
+      button,
+      div {
+        font-family: "Silkscreen", "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol", "Noto Color Emoji", cursive;
+      }
+      button {
+        transition: all 0.2s ease;
+      }
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        animation: twinkle 3s infinite;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(-20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .event-item.new {
+        animation: slideIn 0.3s ease;
+      }
+    </style>
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        createStarfield();
+      });
+
+      function createStarfield() {
+        const starfield = document.getElementById("starfield");
+        const starCount = 100;
+
+        for (let i = 0; i < starCount; i++) {
+          const star = document.createElement("div");
+          star.className = "star";
+          star.style.left = Math.random() * 100 + "%";
+          star.style.top = Math.random() * 100 + "%";
+          star.style.width = Math.random() * 2 + 1 + "px";
+          star.style.height = star.style.width;
+          star.style.animationDelay = Math.random() * 3 + "s";
+          starfield.appendChild(star);
+        }
+      }
+    </script>
+  </head>
+  <body class="bg-slate-950 min-h-screen relative overflow-x-hidden">
+    <div class="fixed inset-0 z-0 opacity-50">
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950"
+      ></div>
+      <div id="starfield" class="absolute inset-0"></div>
+    </div>
+    <div class="container mx-auto px-4 py-8 relative z-10 max-w-6xl">
+      <div class="mb-6">
+        <a href="/" class="text-slate-400 hover:text-slate-200 text-sm"
+          >← Back to Home</a
+        >
+      </div>
+
+      <header class="text-center mb-8">
+        <h1 class="text-4xl font-bold mb-2" style="color: #bf7523">
+          📊 SSE Multiple Messages Demo
+        </h1>
+        <p class="text-slate-400">Streaming multiple SSE messages</p>
+        <p class="text-xs font-mono text-slate-500 mt-2">GET /sse/multiple</p>
+      </header>
+
+      <!-- Description -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6 mb-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <p class="text-sm text-slate-300 mb-2">
+          Sends 10 SSE messages with 500ms delays. Watch the real-time stream of
+          events.
+        </p>
+        <div class="bg-orange-900/30 rounded p-3 mt-3">
+          <p class="text-xs text-orange-300">
+            💡 <strong>Streaming Behavior:</strong> Watch as messages arrive one
+            by one! Each message is sent after a 500ms delay, demonstrating the
+            streaming nature of SSE. The server keeps the connection open and
+            flushes each event individually. After the 10th message, the
+            connection closes.
+          </p>
+        </div>
+      </div>
+
+      <!-- Controls & Stats -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6 mb-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold" style="color: #bf7523">Controls</h2>
+          <span
+            id="status"
+            class="text-xs px-3 py-1 rounded bg-red-900/30 text-red-300"
+            >Disconnected</span
+          >
+        </div>
+        <div class="mb-4">
+          <button
+            onclick="connectSSE()"
+            class="hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded mr-2"
+            style="background-color: #bf7523"
+          >
+            Start Streaming
+          </button>
+          <button
+            onclick="clearSessions()"
+            class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded"
+          >
+            Clear All
+          </button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div
+              id="totalSessions"
+              class="text-2xl font-bold"
+              style="color: #bf7523"
+            >
+              0
+            </div>
+            <div class="text-xs text-slate-500">Total Sessions</div>
+          </div>
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div
+              id="messagesReceived"
+              class="text-2xl font-bold"
+              style="color: #bf7523"
+            >
+              0
+            </div>
+            <div class="text-xs text-slate-500">Messages Received</div>
+          </div>
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div
+              id="currentProgress"
+              class="text-2xl font-bold"
+              style="color: #bf7523"
+            >
+              0/0
+            </div>
+            <div class="text-xs text-slate-500">Current Session</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sessions -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <h2 class="text-xl font-bold mb-4" style="color: #bf7523">
+          Streaming Sessions
+        </h2>
+        <div id="sessions" style="max-height: 600px; overflow-y: auto"></div>
+      </div>
+    </div>
+
+    <script>
+      let totalSessions = 0;
+      let totalMessagesReceived = 0;
+      let currentEventSource = null;
+      let currentSessionDiv = null;
+      let currentSessionMessages = 0;
+
+      function updateStats() {
+        document.getElementById("totalSessions").textContent = totalSessions;
+        document.getElementById("messagesReceived").textContent =
+          totalMessagesReceived;
+        document.getElementById("currentProgress").textContent =
+          currentEventSource ? `${currentSessionMessages}/10` : "0/0";
+      }
+
+      function updateStatus(status) {
+        const statusEl = document.getElementById("status");
+        if (status === "streaming") {
+          statusEl.className =
+            "text-xs px-3 py-1 rounded bg-blue-900/30 text-blue-300";
+          statusEl.textContent = "Streaming";
+        } else {
+          statusEl.className =
+            "text-xs px-3 py-1 rounded bg-red-900/30 text-red-300";
+          statusEl.textContent = "Disconnected";
+        }
+      }
+
+      function connectSSE() {
+        // Close existing connection if any
+        if (currentEventSource) {
+          currentEventSource.close();
+        }
+
+        const sessionsDiv = document.getElementById("sessions");
+
+        // Create new session container
+        const sessionDiv = document.createElement("div");
+        sessionDiv.className = "mb-6 border-2 rounded p-4 bg-slate-900/30";
+        sessionDiv.style.borderColor = "rgba(191, 117, 35, 0.3)";
+        sessionDiv.style.fontFamily =
+          '"Silkscreen", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", cursive';
+
+        totalSessions++;
+        currentSessionMessages = 0;
+        const sessionTime = new Date().toLocaleTimeString();
+
+        sessionDiv.innerHTML = `
+        <div class="text-sm font-bold mb-3" style="color: #bf7523;">
+          Session #${totalSessions} - Started at ${sessionTime}
+        </div>
+        <div class="text-xs text-slate-400 mb-3">Waiting for messages...</div>
+        <div class="session-events"></div>
+      `;
+
+        sessionsDiv.insertBefore(sessionDiv, sessionsDiv.firstChild);
+        currentSessionDiv = sessionDiv;
+
+        updateStats();
+        updateStatus("streaming");
+
+        // Create new EventSource
+        currentEventSource = new EventSource("/sse/multiple");
+
+        currentEventSource.onmessage = (event) => {
+          totalMessagesReceived++;
+          currentSessionMessages++;
+          updateStats();
+
+          const eventsContainer = sessionDiv.querySelector(".session-events");
+          const eventItem = document.createElement("div");
+          eventItem.className =
+            "event-item new mb-3 border-l-4 rounded p-3 bg-slate-950/50";
+          eventItem.style.borderColor = "#bf7523";
+          eventItem.style.fontFamily =
+            '"Silkscreen", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", cursive';
+
+          try {
+            const data = JSON.parse(event.data);
+            const messageTime = new Date().toLocaleTimeString();
+
+            eventItem.innerHTML = `
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xs px-2 py-1 rounded text-slate-950 font-bold" style="background-color: #bf7523;">${
+                data.count
+              }/10</span>
+              <strong class="text-sm text-slate-200">${data.message}</strong>
+            </div>
+            <div class="text-xs text-slate-500 mb-2">Received at ${messageTime}</div>
+            <div class="bg-slate-950/80 rounded p-3 text-xs text-green-400 font-mono overflow-x-auto">${JSON.stringify(
+              data,
+              null,
+              2
+            )}</div>
+          `;
+
+            eventsContainer.appendChild(eventItem);
+
+            // Update progress
+            const progressDiv = sessionDiv.querySelector(
+              ".text-xs.text-slate-400"
+            );
+            progressDiv.textContent = `Progress: ${currentSessionMessages}/10 messages received`;
+
+            // Scroll to new message
+            eventItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          } catch (e) {
+            eventItem.innerHTML = `
+            <div class="text-sm text-slate-200">Message received</div>
+            <div class="bg-slate-950/80 rounded p-3 text-xs text-green-400 font-mono overflow-x-auto">${event.data}</div>
+          `;
+            eventsContainer.appendChild(eventItem);
+          }
+        };
+
+        currentEventSource.onerror = (error) => {
+          console.log("SSE Error or connection closed:", error);
+          updateStatus("disconnected");
+
+          if (currentEventSource) {
+            currentEventSource.close();
+            currentEventSource = null;
+          }
+
+          const progressDiv = sessionDiv.querySelector(
+            ".text-xs.text-slate-400"
+          );
+          if (currentSessionMessages === 10) {
+            progressDiv.textContent =
+              "✅ All 10 messages received - Connection closed";
+            progressDiv.className = "text-xs text-green-400 mb-3 font-bold";
+          } else {
+            progressDiv.textContent = `⚠️ Connection closed after ${currentSessionMessages} messages`;
+            progressDiv.className = "text-xs text-red-400 mb-3 font-bold";
+          }
+
+          currentSessionDiv = null;
+          updateStats();
+        };
+
+        currentEventSource.onopen = () => {
+          console.log("SSE connection opened");
+        };
+      }
+
+      function clearSessions() {
+        document.getElementById("sessions").innerHTML = "";
+        totalSessions = 0;
+        totalMessagesReceived = 0;
+        currentSessionMessages = 0;
+        if (currentEventSource) {
+          currentEventSource.close();
+          currentEventSource = null;
+        }
+        currentSessionDiv = null;
+        updateStats();
+        updateStatus("disconnected");
+      }
+    </script>
+  </body>
+</html>

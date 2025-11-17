@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.5"/>
+  <title>Migrated Endpoints - Express Server</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet"/>
+  <link href="/static/css/output.css" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: "Silkscreen", cursive;
+    }
+    /* Fix emoji rendering */
+    h1, h2, h3, h4, h5, h6, p, span, button, div {
+      font-family: "Silkscreen", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", cursive;
+    }
+    button {
+      transition: all 0.2s ease;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 3s infinite;
+    }
+  </style>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      createStarfield();
+    });
+
+    function createStarfield() {
+      const starfield = document.getElementById("starfield");
+      const starCount = 100;
+
+      for (let i = 0; i < starCount; i++) {
+        const star = document.createElement("div");
+        star.className = "star";
+        star.style.left = Math.random() * 100 + "%";
+        star.style.top = Math.random() * 100 + "%";
+        star.style.width = Math.random() * 2 + 1 + "px";
+        star.style.height = star.style.width;
+        star.style.animationDelay = Math.random() * 3 + "s";
+        starfield.appendChild(star);
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-950 min-h-screen relative overflow-x-hidden">
+  <div class="fixed inset-0 z-0 opacity-50">
+    <div class="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950"></div>
+    <div id="starfield" class="absolute inset-0"></div>
+  </div>
+  <div class="container mx-auto px-4 py-8 relative z-10 max-w-6xl">
+    <div class="mb-6">
+      <a href="/" class="text-slate-400 hover:text-slate-200 text-sm">← Back to Home</a>
+    </div>
+
+    <header class="text-center mb-12">
+      <h1 class="text-4xl font-bold mb-2" style="color: #bf7523;">Endpoint Tests</h1>
+      <p class="text-slate-400">Migrated from Go - Compression, SSE & Browser Queueing</p>
+    </header>
+
+    <!-- API Endpoints -->
+    <div class="grid md:grid-cols-3 gap-6 mb-6">
+      <div class="bg-indigo-950/40 border-2 rounded p-6" style="border-color: rgba(191, 117, 35, 0.5);">
+        <h3 class="text-xl font-bold mb-4" style="color: #bf7523;">API Hello</h3>
+        <div id="api-hello-output" class="bg-slate-950/80 rounded p-4 border min-h-[200px] text-xs text-slate-300 mb-4 overflow-y-auto max-h-[300px]" style="border-color: rgba(191, 117, 35, 0.2);"></div>
+        <button onclick="testAPIHello()" class="w-full hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded" style="background-color: #bf7523;">Test</button>
+      </div>
+
+      <div class="bg-indigo-950/40 border-2 rounded p-6" style="border-color: rgba(191, 117, 35, 0.5);">
+        <h3 class="text-xl font-bold mb-4" style="color: #bf7523;">Close-Delimited</h3>
+        <div id="close-delimited-output" class="bg-slate-950/80 rounded p-4 border min-h-[200px] text-xs text-slate-300 mb-4 overflow-y-auto max-h-[300px]" style="border-color: rgba(191, 117, 35, 0.2);"></div>
+        <button onclick="testCloseDelimited()" class="w-full hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded" style="background-color: #bf7523;">Test</button>
+      </div>
+
+      <div class="bg-indigo-950/40 border-2 rounded p-6" style="border-color: rgba(191, 117, 35, 0.5);">
+        <h3 class="text-xl font-bold mb-4" style="color: #bf7523;">API Parallel - Browser Queue</h3>
+        <div id="api-slow-output" class="bg-slate-950/80 rounded p-4 border min-h-[200px] text-xs text-slate-300 mb-4 overflow-y-auto max-h-[300px]" style="border-color: rgba(191, 117, 35, 0.2);"></div>
+        <button onclick="testAPISlowMultiple(30)" class="w-full hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded" style="background-color: #bf7523;">Test 30 Parallel</button>
+      </div>
+    </div>
+
+    <!-- SSE Endpoints -->
+    <div class="grid md:grid-cols-5 gap-6">
+      <div class="bg-indigo-950/40 border-2 rounded p-6" style="border-color: rgba(191, 117, 35, 0.5);">
+        <h3 class="text-xl font-bold mb-4" style="color: #bf7523;">SSE Single</h3>
+        <div id="sse-single-output" class="bg-slate-950/80 rounded p-4 border min-h-[200px] text-xs text-slate-300 mb-4 overflow-y-auto max-h-[300px]" style="border-color: rgba(191, 117, 35, 0.2);"></div>
+        <button onclick="testSSESingle()" class="w-full hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded mb-2" style="background-color: #bf7523;">Test</button>
+        <a href="/sse-single.html" class="block w-full text-center text-xs text-slate-400 hover:text-slate-200">View Demo →</a>
+      </div>
+
+      <div class="bg-indigo-950/40 border-2 rounded p-6" style="border-color: rgba(191, 117, 35, 0.5);">
+        <h3 class="text-xl font-bold mb-4" style="color: #bf7523;">SSE Single No-Chunked</h3>
+        <div id="sse-single-no-chunked-output" class="bg-slate-950/80 rounded p-4 border min-h-[200px] text-xs text-slate-300 mb-4 overflow-y-auto max-h-[300px]" style="border-color: rgba(191, 117, 35, 0.2);"></div>
+        <button onclick="testSSESingleNoChunked()" class="w-full hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded mb-2" style="background-color: #bf7523;">Test</button>
+        <a href="/sse-single-no-chunked.html" class="block w-full text-center text-xs text-slate-400 hover:text-slate-200">View Demo →</a>
+      </div>
+
+      <div class="bg-indigo-950/40 border-2 rounded p-6" style="border-color: rgba(191, 117, 35, 0.5);">
+        <h3 class="text-xl font-bold mb-4" style="color: #bf7523;">SSE Multiple</h3>
+        <div id="sse-multiple-output" class="bg-slate-950/80 rounded p-4 border min-h-[200px] text-xs text-slate-300 mb-4 overflow-y-auto max-h-[300px]" style="border-color: rgba(191, 117, 35, 0.2);"></div>
+        <button onclick="testSSEMultiple()" class="w-full hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded mb-2" style="background-color: #bf7523;">Test</button>
+        <a href="/sse-multiple.html" class="block w-full text-center text-xs text-slate-400 hover:text-slate-200">View Demo →</a>
+      </div>
+
+      <div class="bg-indigo-950/40 border-2 rounded p-6" style="border-color: rgba(191, 117, 35, 0.5);">
+        <h3 class="text-xl font-bold mb-4" style="color: #bf7523;">SSE Multiple No-Chunked</h3>
+        <div id="sse-no-chunked-output" class="bg-slate-950/80 rounded p-4 border min-h-[200px] text-xs text-slate-300 mb-4 overflow-y-auto max-h-[300px]" style="border-color: rgba(191, 117, 35, 0.2);"></div>
+        <button onclick="testSSENoChunked()" class="w-full hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded mb-2" style="background-color: #bf7523;">Test</button>
+        <a href="/sse-no-chunked.html" class="block w-full text-center text-xs text-slate-400 hover:text-slate-200">View Demo →</a>
+      </div>
+
+      <div class="bg-indigo-950/40 border-2 rounded p-6" style="border-color: rgba(191, 117, 35, 0.5);">
+        <h3 class="text-xl font-bold mb-4" style="color: #bf7523;">SSE Compressed</h3>
+        <div id="sse-compressed-output" class="bg-slate-950/80 rounded p-4 border min-h-[200px] text-xs text-slate-300 mb-4 overflow-y-auto max-h-[300px]" style="border-color: rgba(191, 117, 35, 0.2);"></div>
+        <button onclick="testSSECompressed()" class="w-full hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded mb-2" style="background-color: #bf7523;">Test</button>
+        <a href="/sse-compressed.html" class="block w-full text-center text-xs text-slate-400 hover:text-slate-200">View Demo →</a>
+      </div>
+    </div>
+
+    <script>
+      async function testAPIHello() {
+        const output = document.getElementById('api-hello-output');
+        output.innerHTML = '<div style="color: #bf7523;">Loading...</div>';
+        try {
+          const response = await fetch('/api/hello');
+          const data = await response.json();
+          output.innerHTML = `<div class="text-green-400">✓ Success</div><div class="mt-2">${JSON.stringify(data, null, 2)}</div>`;
+        } catch (error) {
+          output.innerHTML = `<div class="text-red-400">✗ Error: ${error.message}</div>`;
+        }
+      }
+
+      async function testCloseDelimited() {
+        const output = document.getElementById('close-delimited-output');
+        output.innerHTML = '<div style="color: #bf7523;">Loading...</div>';
+        try {
+          const response = await fetch('/api/close-delimited');
+          const text = await response.text();
+          const hasContentLength = response.headers.has('content-length');
+          const connection = response.headers.get('connection');
+          output.innerHTML = `<div class="text-green-400">✓ Success</div>` +
+            `<div class="mt-2 text-slate-500">Content-Length: ${hasContentLength ? 'present' : 'absent'}</div>` +
+            `<div class="text-slate-500">Connection: ${connection || 'n/a'}</div>` +
+            `<div class="mt-2 whitespace-pre-wrap">${text}</div>`;
+        } catch (error) {
+          output.innerHTML = `<div class="text-red-400">✗ Error: ${error.message}</div>`;
+        }
+      }
+
+      async function testAPISlowMultiple(count) {
+        const output = document.getElementById('api-slow-output');
+        const startTime = Date.now();
+        const results = [];
+
+        output.innerHTML = `<div style="color: #bf7523;">Starting ${count} requests...</div>`;
+
+        const promises = [];
+        for (let i = 0; i < count; i++) {
+          const reqId = i + 1;
+          const reqStart = Date.now();
+
+          const promise = fetch(`/api/slow?id=${reqId}`)
+            .then(r => r.json())
+            .then(() => {
+              const elapsed = ((Date.now() - reqStart) / 1000).toFixed(1);
+              const total = ((Date.now() - startTime) / 1000).toFixed(1);
+              results.push({ id: reqId, start: ((reqStart - startTime) / 1000).toFixed(1), elapsed, finished: total });
+              results.sort((a, b) => a.id - b.id);
+
+              output.innerHTML = `<div class="text-green-400">${results.length}/${count} complete</div>` +
+                results.map(r => `<div>Req ${r.id}: took ${r.elapsed}s, done @${r.finished}s</div>`).join('');
+
+              if (results.length === count) {
+                const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+                output.innerHTML += `<div class="mt-2" style="color: #bf7523;">Total: ${totalTime}s</div>`;
+                if (count > 6) {
+                  const batches = Math.ceil(count / 6);
+                  output.innerHTML += `<div class="text-slate-500">6 conn limit → ${batches} batches</div>`;
+                }
+              }
+            });
+
+          promises.push(promise);
+        }
+
+        await Promise.all(promises);
+      }
+
+      function testSSESingle() {
+        const output = document.getElementById('sse-single-output');
+        output.innerHTML = '<div style="color: #bf7523;">Connecting...</div>';
+        const eventSource = new EventSource('/sse/single');
+        eventSource.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          output.innerHTML = `<div class="text-green-400">✓ Received</div><div class="mt-2">${data.message}</div>`;
+          eventSource.close();
+        };
+        eventSource.onerror = function() {
+          output.innerHTML = '<div class="text-red-400">✗ Error</div>';
+          eventSource.close();
+        };
+      }
+
+      function testSSESingleNoChunked() {
+        const output = document.getElementById('sse-single-no-chunked-output');
+        output.innerHTML = '<div style="color: #bf7523;">Connecting...</div>';
+        const eventSource = new EventSource('/sse/single-no-chunked');
+        eventSource.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          output.innerHTML = `<div class="text-green-400">✓ Received</div><div class="mt-2">${data.message}</div><div class="mt-2 text-slate-500">No chunked!</div>`;
+          eventSource.close();
+        };
+        eventSource.onerror = function() {
+          output.innerHTML = '<div class="text-red-400">✗ Error</div>';
+          eventSource.close();
+        };
+      }
+
+      function testSSEMultiple() {
+        const output = document.getElementById('sse-multiple-output');
+        output.innerHTML = '<div style="color: #bf7523;">Connecting...</div>';
+        const eventSource = new EventSource('/sse/multiple');
+        let messages = [];
+        eventSource.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          messages.push(data);
+          output.innerHTML = messages.map(msg => `<div><span class="text-green-400">✓</span> ${msg.message}</div>`).join('');
+          if (data.count === 10) {
+            eventSource.close();
+          }
+        };
+        eventSource.onerror = function() {
+          eventSource.close();
+        };
+      }
+
+      function testSSENoChunked() {
+        const output = document.getElementById('sse-no-chunked-output');
+        output.innerHTML = '<div style="color: #bf7523;">Connecting...</div>';
+        const eventSource = new EventSource('/sse/multiple-no-chunked');
+        let messages = [];
+        eventSource.onmessage = function(event) {
+          const data = JSON.parse(event.data);
+          messages.push(data);
+          output.innerHTML = messages.map(msg => `<div><span class="text-green-400">✓</span> ${msg.message}</div>`).join('');
+          if (data.count === 10) {
+            output.innerHTML += '<div class="mt-2 text-slate-500">No chunked encoding!</div>';
+            eventSource.close();
+          }
+        };
+        eventSource.onerror = function() {
+          eventSource.close();
+        };
+      }
+
+      async function testSSECompressed() {
+        const output = document.getElementById('sse-compressed-output');
+        output.innerHTML = '<div style="color: #bf7523;">Connecting...</div>';
+        const eventSource = new EventSource('/sse/compressed');
+        let count = 0;
+        eventSource.onmessage = async function(event) {
+          const data = JSON.parse(event.data);
+          if (data.compressed) {
+            const binaryString = atob(data.payload);
+            const bytes = Uint8Array.from(binaryString, c => c.charCodeAt(0));
+            const stream = new Response(bytes).body.pipeThrough(new DecompressionStream('gzip'));
+            const decompressed = await new Response(stream).text();
+            const original = JSON.parse(decompressed);
+            count++;
+            const ratio = ((1 - data.compressedSize / data.originalSize) * 100).toFixed(0);
+            output.innerHTML = `<div class="text-green-400">Received ${count}/10</div><div class="mt-2">Saved ${ratio}%: ${data.originalSize}→${data.compressedSize} bytes</div><div class="mt-2">${original.message}</div>`;
+            if (count === 10) {
+              eventSource.close();
+            }
+          }
+        };
+        eventSource.onerror = function() {
+          eventSource.close();
+        };
+      }
+    </script>
+  </div>
+</body>
+</html>

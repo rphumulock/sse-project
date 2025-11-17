@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.5" />
+    <title>HTTP/1.1 Demo</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📡</text></svg>"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="/static/css/output.css" rel="stylesheet" />
+    <style>
+      body {
+        font-family: "Silkscreen", cursive;
+      }
+      /* Fix emoji rendering */
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      p,
+      span,
+      button,
+      div {
+        font-family: "Silkscreen", "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol", "Noto Color Emoji", cursive;
+      }
+      button {
+        transition: all 0.2s ease;
+      }
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        animation: twinkle 3s infinite;
+      }
+    </style>
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        createStarfield();
+      });
+
+      function createStarfield() {
+        const starfield = document.getElementById("starfield");
+        const starCount = 100;
+
+        for (let i = 0; i < starCount; i++) {
+          const star = document.createElement("div");
+          star.className = "star";
+          star.style.left = Math.random() * 100 + "%";
+          star.style.top = Math.random() * 100 + "%";
+          star.style.width = Math.random() * 2 + 1 + "px";
+          star.style.height = star.style.width;
+          star.style.animationDelay = Math.random() * 3 + "s";
+          starfield.appendChild(star);
+        }
+      }
+    </script>
+  </head>
+  <body class="bg-slate-950 min-h-screen relative overflow-x-hidden">
+    <div class="fixed inset-0 z-0 opacity-50">
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950"
+      ></div>
+      <div id="starfield" class="absolute inset-0"></div>
+    </div>
+    <div class="container mx-auto px-4 py-8 relative z-10 max-w-6xl">
+      <div class="mb-6">
+        <a href="/" class="text-slate-400 hover:text-slate-200 text-sm"
+          >← Back to Home</a
+        >
+      </div>
+
+      <header class="text-center mb-8">
+        <h1 class="text-4xl font-bold mb-2" style="color: #bf7523">
+          📡 HTTP/1.1 Demo
+        </h1>
+        <p class="text-slate-400">Content-Length + Connection: close</p>
+        <p class="text-xs font-mono text-slate-500 mt-2">GET /api/http11-demo</p>
+      </header>
+
+      <!-- Description -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6 mb-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <p class="text-sm text-slate-300 mb-2">
+          This demo demonstrates HTTP/1.1 responses using explicit Content-Length
+          and Connection: close headers. Each response includes a calculated
+          Content-Length header and closes the connection after sending the response.
+        </p>
+        <div class="bg-green-900/30 rounded p-3 mt-3">
+          <p class="text-xs text-green-300">
+            💡 <strong>How it works:</strong> The server calculates the exact size
+            of the response body, sets the Content-Length header, and includes
+            Connection: close to signal that the connection will be closed after
+            this response. This is a classic HTTP/1.1 pattern that doesn't use
+            chunked transfer encoding.
+          </p>
+        </div>
+      </div>
+
+      <!-- Controls & Stats -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6 mb-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold" style="color: #bf7523">Controls</h2>
+          <span
+            id="status"
+            class="text-xs px-3 py-1 rounded bg-slate-700/50 text-slate-300"
+            >Ready</span
+          >
+        </div>
+        <div class="mb-4">
+          <button
+            onclick="testSingleRequest()"
+            class="hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded mr-2"
+            style="background-color: #bf7523"
+          >
+            Single Request
+          </button>
+          <button
+            onclick="testMultipleRequests(5)"
+            class="hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded mr-2"
+            style="background-color: #bf7523"
+          >
+            5 Sequential
+          </button>
+          <button
+            onclick="testMultipleRequests(10)"
+            class="hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded mr-2"
+            style="background-color: #bf7523"
+          >
+            10 Sequential
+          </button>
+          <button
+            onclick="clearOutput()"
+            class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded"
+          >
+            Clear
+          </button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div
+              id="totalRequests"
+              class="text-2xl font-bold"
+              style="color: #bf7523"
+            >
+              0
+            </div>
+            <div class="text-xs text-slate-500">Total Requests</div>
+          </div>
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div
+              id="completedRequests"
+              class="text-2xl font-bold"
+              style="color: #bf7523"
+            >
+              0
+            </div>
+            <div class="text-xs text-slate-500">Completed</div>
+          </div>
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div
+              id="avgResponseTime"
+              class="text-2xl font-bold"
+              style="color: #bf7523"
+            >
+              0ms
+            </div>
+            <div class="text-xs text-slate-500">Avg Response Time</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6 mb-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <h2 class="text-xl font-bold mb-4" style="color: #bf7523">
+          Request Timeline
+        </h2>
+        <div
+          id="output"
+          class="bg-slate-950/80 rounded p-4 border text-xs text-slate-300 overflow-y-auto"
+          style="border-color: rgba(191, 117, 35, 0.2); height: 300px; min-height: 300px; max-height: 300px;"
+        ></div>
+      </div>
+
+      <!-- Response Headers -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <h2 class="text-xl font-bold mb-4" style="color: #bf7523">
+          Response Details
+        </h2>
+        <div
+          id="responseDetails"
+          class="bg-slate-950/80 rounded p-4 border text-xs text-slate-300 overflow-y-auto font-mono"
+          style="border-color: rgba(191, 117, 35, 0.2); height: 200px; min-height: 200px; max-height: 200px;"
+        >
+          <div class="text-slate-500">No request made yet...</div>
+        </div>
+      </div>
+
+      <script>
+        let requestCount = 0;
+        let completedCount = 0;
+        let totalResponseTime = 0;
+
+        function updateStats() {
+          document.getElementById("totalRequests").textContent = requestCount;
+          document.getElementById("completedRequests").textContent = completedCount;
+          const avgTime = completedCount > 0 ? Math.round(totalResponseTime / completedCount) : 0;
+          document.getElementById("avgResponseTime").textContent = avgTime + "ms";
+        }
+
+        function updateStatus(status) {
+          const statusEl = document.getElementById("status");
+          if (status === "running") {
+            statusEl.className =
+              "text-xs px-3 py-1 rounded bg-orange-900/30 text-orange-300";
+            statusEl.textContent = "Running";
+          } else if (status === "complete") {
+            statusEl.className =
+              "text-xs px-3 py-1 rounded bg-green-900/30 text-green-300";
+            statusEl.textContent = "Complete";
+          } else {
+            statusEl.className =
+              "text-xs px-3 py-1 rounded bg-slate-700/50 text-slate-300";
+            statusEl.textContent = "Ready";
+          }
+        }
+
+        function clearOutput() {
+          document.getElementById("output").innerHTML = "";
+          document.getElementById("responseDetails").innerHTML = '<div class="text-slate-500">No request made yet...</div>';
+          requestCount = 0;
+          completedCount = 0;
+          totalResponseTime = 0;
+          updateStats();
+          updateStatus("ready");
+        }
+
+        function addLog(message, type = "info") {
+          const output = document.getElementById("output");
+          const color = type === "success" ? "#10b981" : type === "error" ? "#ef4444" : "#bf7523";
+          const line = document.createElement("div");
+          line.style.color = color;
+          line.textContent = message;
+          output.appendChild(line);
+          output.scrollTop = output.scrollHeight;
+        }
+
+        function showResponseDetails(response, data, responseTime) {
+          const detailsEl = document.getElementById("responseDetails");
+
+          const headers = {};
+          response.headers.forEach((value, key) => {
+            headers[key] = value;
+          });
+
+          const details = {
+            status: response.status,
+            statusText: response.statusText,
+            headers: headers,
+            responseTime: responseTime + "ms",
+            body: data
+          };
+
+          detailsEl.innerHTML = `<pre>${JSON.stringify(details, null, 2)}</pre>`;
+          detailsEl.scrollTop = 0;
+        }
+
+        async function testSingleRequest() {
+          requestCount = 1;
+          completedCount = 0;
+          totalResponseTime = 0;
+          updateStats();
+          updateStatus("running");
+
+          const output = document.getElementById("output");
+          output.innerHTML = "";
+          addLog("Starting single request...", "info");
+
+          const startTime = Date.now();
+
+          try {
+            const response = await fetch(`/api/http11-demo?count=1`);
+            const data = await response.json();
+            const responseTime = Date.now() - startTime;
+
+            totalResponseTime = responseTime;
+            completedCount = 1;
+            updateStats();
+
+            addLog(`✓ Request completed in ${responseTime}ms`, "success");
+            addLog(`  Response ID: ${data.id}`, "info");
+            addLog(`  Message: ${data.message}`, "info");
+
+            showResponseDetails(response, data, responseTime);
+            updateStatus("complete");
+          } catch (err) {
+            addLog(`✗ Error: ${err.message}`, "error");
+            updateStatus("complete");
+          }
+        }
+
+        async function testMultipleRequests(count) {
+          requestCount = count;
+          completedCount = 0;
+          totalResponseTime = 0;
+          updateStats();
+          updateStatus("running");
+
+          const output = document.getElementById("output");
+          output.innerHTML = "";
+          addLog(`Starting ${count} sequential requests...`, "info");
+
+          for (let i = 0; i < count; i++) {
+            const reqNum = i + 1;
+            const startTime = Date.now();
+
+            try {
+              const response = await fetch(`/api/http11-demo?count=${reqNum}`);
+              const data = await response.json();
+              const responseTime = Date.now() - startTime;
+
+              totalResponseTime += responseTime;
+              completedCount++;
+              updateStats();
+
+              addLog(`✓ Request ${reqNum}/${count}: ${responseTime}ms - ${data.message}`, "success");
+
+              if (reqNum === count) {
+                showResponseDetails(response, data, responseTime);
+              }
+            } catch (err) {
+              addLog(`✗ Request ${reqNum}/${count} failed: ${err.message}`, "error");
+            }
+          }
+
+          const avgTime = Math.round(totalResponseTime / count);
+          addLog(`\nAll ${count} requests completed. Avg: ${avgTime}ms`, "info");
+          updateStatus("complete");
+        }
+      </script>
+    </div>
+  </body>
+</html>

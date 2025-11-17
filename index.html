@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.5" />
+    <title>SSE Demo Collection</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="/static/css/output.css" rel="stylesheet" />
+    <style>
+      body {
+        font-family: "Silkscreen", cursive;
+      }
+      /* Fix emoji rendering */
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      p,
+      span {
+        font-family: "Silkscreen", "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol", "Noto Color Emoji", cursive;
+      }
+      a {
+        transition: all 0.2s ease;
+      }
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        animation: twinkle 3s infinite;
+      }
+      .demo-card {
+        transition: all 0.2s ease;
+      }
+      .demo-card:hover {
+        border-color: rgba(191, 117, 35, 0.9);
+        transform: translateY(-2px);
+      }
+    </style>
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        createStarfield();
+      });
+
+      function createStarfield() {
+        const starfield = document.getElementById("starfield");
+        const starCount = 100;
+
+        for (let i = 0; i < starCount; i++) {
+          const star = document.createElement("div");
+          star.className = "star";
+          star.style.left = Math.random() * 100 + "%";
+          star.style.top = Math.random() * 100 + "%";
+          star.style.width = Math.random() * 2 + 1 + "px";
+          star.style.height = star.style.width;
+          star.style.animationDelay = Math.random() * 3 + "s";
+          starfield.appendChild(star);
+        }
+      }
+    </script>
+  </head>
+  <body class="bg-slate-950 min-h-screen relative overflow-x-hidden">
+    <div class="fixed inset-0 z-0 opacity-50">
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950"
+      ></div>
+      <div id="starfield" class="absolute inset-0"></div>
+    </div>
+    <div class="container mx-auto px-4 py-8 relative z-10 max-w-6xl">
+      <header class="text-center mb-12">
+        <h1 class="text-4xl font-bold mb-2" style="color: #bf7523">
+          🚀 SSE Demo Collection
+        </h1>
+        <p class="text-slate-400">
+          Server-Sent Events experiments & HTTP transfer encoding demos
+        </p>
+      </header>
+
+      <!-- Main Demos -->
+      <div class="mb-12">
+        <h2
+          class="text-2xl font-bold mb-6 pb-2 border-b-2 text-slate-200"
+          style="border-color: rgba(191, 117, 35, 0.3)"
+        >
+          📺 Interactive Demos
+        </h2>
+        <div class="grid md:grid-cols-3 gap-6">
+          <!-- SSE Retry Demo -->
+          <div
+            class="demo-card bg-indigo-950/40 border-2 rounded p-6"
+            style="border-color: rgba(191, 117, 35, 0.5)"
+          >
+            <div class="flex items-center justify-between mb-3">
+              <h3
+                class="text-lg font-bold flex items-center gap-2"
+                style="color: #bf7523"
+              >
+                <span>🔄</span> SSE Retry Demo
+              </h3>
+            </div>
+            <p class="text-sm text-slate-300 mb-4">
+              Demo showing SSE retry behavior with different connection modes.
+            </p>
+            <a
+              href="/index-sse-retry-demo.html"
+              class="block w-full text-center hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded"
+              style="background-color: #bf7523"
+              >Open Demo →</a
+            >
+          </div>
+
+          <!-- Migrated Endpoints -->
+          <div
+            class="demo-card bg-indigo-950/40 border-2 rounded p-6"
+            style="border-color: rgba(191, 117, 35, 0.5)"
+          >
+            <div class="flex items-center justify-between mb-3">
+              <h3
+                class="text-lg font-bold flex items-center gap-2"
+                style="color: #bf7523"
+              >
+                <span>🎯</span> Head of line Blocking
+              </h3>
+            </div>
+            <p class="text-sm text-slate-300 mb-4">
+              Simple demo showing HTTP1.1 head Of line blocking.
+            </p>
+            <a
+              href="/hol-blocking.html"
+              class="block w-full text-center hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded"
+              style="background-color: #bf7523"
+              >Open Demo →</a
+            >
+          </div>
+
+          <!-- SSE Single -->
+          <div
+            class="demo-card bg-indigo-950/40 border-2 rounded p-6"
+            style="border-color: rgba(191, 117, 35, 0.5)"
+          >
+            <h3
+              class="text-lg font-bold mb-3 flex items-center gap-2"
+              style="color: #bf7523"
+            >
+              <span>📡</span> SSE Single Message
+            </h3>
+            <p class="text-sm text-slate-300 mb-4">
+              Simple demo showing a single SSE message being sent and received.
+            </p>
+            <a
+              href="/sse-single.html"
+              class="block w-full text-center hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded"
+              style="background-color: #bf7523"
+              >Open Demo →</a
+            >
+          </div>
+
+          <!-- SSE Multiple -->
+          <div
+            class="demo-card bg-indigo-950/40 border-2 rounded p-6"
+            style="border-color: rgba(191, 117, 35, 0.5)"
+          >
+            <h3
+              class="text-lg font-bold mb-3 flex items-center gap-2"
+              style="color: #bf7523"
+            >
+              <span>📊</span> SSE Multiple Messages
+            </h3>
+            <p class="text-sm text-slate-300 mb-4">
+              Demonstrates streaming multiple SSE messages with delays.
+            </p>
+            <a
+              href="/sse-multiple.html"
+              class="block w-full text-center hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded"
+              style="background-color: #bf7523"
+              >Open Demo →</a
+            >
+          </div>
+
+          <!-- API Hello -->
+          <div
+            class="demo-card bg-indigo-950/40 border-2 rounded p-6"
+            style="border-color: rgba(191, 117, 35, 0.5)"
+          >
+            <h3
+              class="text-lg font-bold mb-3 flex items-center gap-2"
+              style="color: #bf7523"
+            >
+              <span>👋</span> API Hello
+            </h3>
+            <p class="text-sm text-slate-300 mb-4">
+              Simple JSON API endpoint returning application information.
+            </p>
+            <a
+              href="/hello.html"
+              class="block w-full text-center hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded"
+              style="background-color: #bf7523"
+              >Open Demo →</a
+            >
+          </div>
+
+          <!-- HTTP/1.1 Demo -->
+          <div
+            class="demo-card bg-indigo-950/40 border-2 rounded p-6"
+            style="border-color: rgba(191, 117, 35, 0.5)"
+          >
+            <h3
+              class="text-lg font-bold mb-3 flex items-center gap-2"
+              style="color: #bf7523"
+            >
+              <span>📡</span> HTTP/1.1 Demo
+            </h3>
+            <p class="text-sm text-slate-300 mb-4">
+              HTTP/1.1 using Content-Length and Connection: close headers.
+            </p>
+            <a
+              href="/http11-demo.html"
+              class="block w-full text-center hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded"
+              style="background-color: #bf7523"
+              >Open Demo →</a
+            >
+          </div>
+
+          <!-- Variable Chunks -->
+          <div
+            class="demo-card bg-indigo-950/40 border-2 rounded p-6"
+            style="border-color: rgba(191, 117, 35, 0.5)"
+          >
+            <h3
+              class="text-lg font-bold mb-3 flex items-center gap-2"
+              style="color: #bf7523"
+            >
+              <span>🎲</span> Variable Chunks
+            </h3>
+            <p class="text-sm text-slate-300 mb-4">
+              HTTP chunked encoding with exponentially growing chunk sizes.
+            </p>
+            <a
+              href="/variable-chunks.html"
+              class="block w-full text-center hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded"
+              style="background-color: #bf7523"
+              >Open Demo →</a
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- API Endpoints -->
+      <div class="mb-12">
+        <h2
+          class="text-2xl font-bold mb-6 pb-2 border-b-2 text-slate-200"
+          style="border-color: rgba(191, 117, 35, 0.3)"
+        >
+          🔌 Available API Endpoints
+        </h2>
+        <div class="grid md:grid-cols-4 gap-6">
+          <div
+            class="bg-indigo-950/40 border-2 rounded p-6"
+            style="border-color: rgba(191, 117, 35, 0.5)"
+          >
+            <div class="flex items-center justify-between mb-3">
+              <h3
+                class="text-lg font-bold flex items-center gap-2"
+                style="color: #bf7523"
+              >
+                <span>🌐</span> SSE Retry
+              </h3>
+              <span
+                class="text-xs px-2 py-1 rounded bg-purple-900/30 text-purple-300"
+                >API</span
+              >
+            </div>
+            <div class="text-xs text-slate-400 font-mono space-y-1">
+              <div>/events</div>
+              <div>/events-content-length</div>
+              <div>/events-connection-close-server</div>
+              <div>/events-no-headers</div>
+              <div>/events-send-and-close</div>
+            </div>
+          </div>
+
+          <div
+            class="bg-indigo-950/40 border-2 rounded p-6"
+            style="border-color: rgba(191, 117, 35, 0.5)"
+          >
+            <div class="flex items-center justify-between mb-3">
+              <h3
+                class="text-lg font-bold flex items-center gap-2"
+                style="color: #bf7523"
+              >
+                <span>📡</span> SSE
+              </h3>
+              <span
+                class="text-xs px-2 py-1 rounded bg-purple-900/30 text-purple-300"
+                >API</span
+              >
+            </div>
+            <div class="text-xs text-slate-400 font-mono space-y-1">
+              <div>/sse/single</div>
+              <div>/sse/multiple</div>
+              <div>/sse/compressed</div>
+              <div>/sse/multiple-no-chunked</div>
+            </div>
+          </div>
+
+          <div
+            class="bg-indigo-950/40 border-2 rounded p-6"
+            style="border-color: rgba(191, 117, 35, 0.5)"
+          >
+            <div class="flex items-center justify-between mb-3">
+              <h3
+                class="text-lg font-bold flex items-center gap-2"
+                style="color: #bf7523"
+              >
+                <span>⚡</span> REST API
+              </h3>
+              <span
+                class="text-xs px-2 py-1 rounded bg-purple-900/30 text-purple-300"
+                >API</span
+              >
+            </div>
+            <div class="text-xs text-slate-400 font-mono space-y-1">
+              <div>/api/hello</div>
+              <div>/api/slow</div>
+              <div>/api/close-delimited</div>
+              <div>/api/http11-demo</div>
+              <div>/api/variable-chunks</div>
+            </div>
+          </div>
+
+          <div
+            class="bg-indigo-950/40 border-2 rounded p-6"
+            style="border-color: rgba(191, 117, 35, 0.5)"
+          >
+            <div class="flex items-center justify-between mb-3">
+              <h3
+                class="text-lg font-bold flex items-center gap-2"
+                style="color: #bf7523"
+              >
+                <span>🛠️</span> Utility
+              </h3>
+              <span
+                class="text-xs px-2 py-1 rounded bg-purple-900/30 text-purple-300"
+                >API</span
+              >
+            </div>
+            <div class="text-xs text-slate-400 font-mono space-y-1">
+              <div>/health</div>
+              <div>/control/connections</div>
+              <div>/control/close/:id/:mode</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="text-center mt-16 pt-8 border-t text-slate-500 text-sm"
+        style="border-color: rgba(191, 117, 35, 0.2)"
+      >
+        <p class="mb-1">All demos running on Express + Node.js</p>
+        <p>Server-Sent Events & HTTP Transfer Encoding Experiments</p>
+      </div>
+    </div>
+  </body>
+</html>

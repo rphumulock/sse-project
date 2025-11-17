@@ -1,0 +1,18 @@
+{
+  "name": "sse-project",
+  "version": "1.0.0",
+  "description": "Demonstration of SSE retry header functionality",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:http2": "node server-http2.js",
+    "build:css": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify"
+  },
+  "dependencies": {
+    "@microsoft/fetch-event-source": "^2.0.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.18"
+  }
+}

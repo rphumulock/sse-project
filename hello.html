@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.5" />
+    <title>API Hello Demo</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👋</text></svg>"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link href="/static/css/output.css" rel="stylesheet" />
+    <style>
+      body {
+        font-family: "Silkscreen", cursive;
+      }
+      /* Fix emoji rendering */
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      p,
+      span,
+      button,
+      div {
+        font-family: "Silkscreen", "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol", "Noto Color Emoji", cursive;
+      }
+      button {
+        transition: all 0.2s ease;
+      }
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        animation: twinkle 3s infinite;
+      }
+    </style>
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        createStarfield();
+      });
+
+      function createStarfield() {
+        const starfield = document.getElementById("starfield");
+        const starCount = 100;
+
+        for (let i = 0; i < starCount; i++) {
+          const star = document.createElement("div");
+          star.className = "star";
+          star.style.left = Math.random() * 100 + "%";
+          star.style.top = Math.random() * 100 + "%";
+          star.style.width = Math.random() * 2 + 1 + "px";
+          star.style.height = star.style.width;
+          star.style.animationDelay = Math.random() * 3 + "s";
+          starfield.appendChild(star);
+        }
+      }
+    </script>
+  </head>
+  <body class="bg-slate-950 min-h-screen relative overflow-x-hidden">
+    <div class="fixed inset-0 z-0 opacity-50">
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950"
+      ></div>
+      <div id="starfield" class="absolute inset-0"></div>
+    </div>
+    <div class="container mx-auto px-4 py-8 relative z-10 max-w-6xl">
+      <div class="mb-6">
+        <a href="/" class="text-slate-400 hover:text-slate-200 text-sm"
+          >← Back to Home</a
+        >
+      </div>
+
+      <header class="text-center mb-8">
+        <h1 class="text-4xl font-bold mb-2" style="color: #bf7523">
+          👋 API Hello Demo
+        </h1>
+        <p class="text-slate-400">Simple JSON API endpoint</p>
+        <p class="text-xs font-mono text-slate-500 mt-2">GET /api/hello</p>
+      </header>
+
+      <!-- Description -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6 mb-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <p class="text-sm text-slate-300 mb-2">
+          This endpoint returns a simple JSON response with application
+          information. Each response includes a unique UUID to demonstrate that
+          each request is processed independently.
+        </p>
+        <p class="text-xs text-slate-400">
+          Useful for testing basic API functionality and response structure.
+        </p>
+      </div>
+
+      <!-- Controls & Stats -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6 mb-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <h2 class="text-xl font-bold mb-4" style="color: #bf7523">Controls</h2>
+        <div class="mb-4">
+          <button
+            onclick="fetchHello()"
+            class="hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded mr-2"
+            style="background-color: #bf7523"
+          >
+            Fetch Hello
+          </button>
+          <button
+            onclick="fetchMultiple(5)"
+            class="hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded mr-2"
+            style="background-color: #bf7523"
+          >
+            Fetch 5x
+          </button>
+          <button
+            onclick="fetchMultiple(10)"
+            class="hover:opacity-90 text-slate-950 font-bold py-2 px-4 rounded mr-2"
+            style="background-color: #bf7523"
+          >
+            Fetch 10x
+          </button>
+          <button
+            onclick="clearResponses()"
+            class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded"
+          >
+            Clear All
+          </button>
+        </div>
+
+        <div class="grid grid-cols-4 gap-4">
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div
+              id="totalRequests"
+              class="text-2xl font-bold"
+              style="color: #bf7523"
+            >
+              0
+            </div>
+            <div class="text-xs text-slate-500">Total</div>
+          </div>
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div
+              id="successCount"
+              class="text-2xl font-bold"
+              style="color: #bf7523"
+            >
+              0
+            </div>
+            <div class="text-xs text-slate-500">Success</div>
+          </div>
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div
+              id="errorCount"
+              class="text-2xl font-bold"
+              style="color: #bf7523"
+            >
+              0
+            </div>
+            <div class="text-xs text-slate-500">Errors</div>
+          </div>
+          <div class="bg-slate-900/50 rounded p-3 text-center">
+            <div id="avgTime" class="text-2xl font-bold" style="color: #bf7523">
+              0ms
+            </div>
+            <div class="text-xs text-slate-500">Avg Time</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Responses -->
+      <div
+        class="bg-indigo-950/40 border-2 rounded p-6"
+        style="border-color: rgba(191, 117, 35, 0.5)"
+      >
+        <h2 class="text-xl font-bold mb-4" style="color: #bf7523">Responses</h2>
+        <div
+          id="responses"
+          class="max-h-[500px] overflow-y-auto"
+        ></div>
+      </div>
+    </div>
+
+    <script>
+      let requestCount = 0;
+      let successCount = 0;
+      let errorCount = 0;
+      let totalTime = 0;
+
+      function updateStats() {
+        document.getElementById("totalRequests").textContent = requestCount;
+        document.getElementById("successCount").textContent = successCount;
+        document.getElementById("errorCount").textContent = errorCount;
+        document.getElementById("avgTime").textContent =
+          requestCount > 0
+            ? Math.round(totalTime / requestCount) + "ms"
+            : "0ms";
+      }
+
+      async function fetchHello() {
+        const responsesDiv = document.getElementById("responses");
+        const responseItem = document.createElement("div");
+        responseItem.className = "mb-4 border-2 rounded p-4 bg-slate-900/30";
+        responseItem.style.borderColor = "rgba(191, 117, 35, 0.3)";
+        responseItem.style.fontFamily =
+          '"Silkscreen", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", cursive';
+
+        const timestamp = new Date().toISOString();
+        responseItem.innerHTML = `
+        <div class="text-xs text-slate-500 mb-2">${timestamp}</div>
+        <div class="text-sm text-orange-400">Loading...</div>
+      `;
+
+        responsesDiv.insertBefore(responseItem, responsesDiv.firstChild);
+
+        const startTime = performance.now();
+
+        try {
+          const response = await fetch("/api/hello");
+          const data = await response.json();
+
+          const endTime = performance.now();
+          const duration = Math.round(endTime - startTime);
+
+          requestCount++;
+          successCount++;
+          totalTime += duration;
+          updateStats();
+
+          responseItem.innerHTML = `
+          <div class="text-xs text-slate-500 mb-2">${timestamp} - ${duration}ms</div>
+          <div class="bg-slate-950/80 rounded p-3 text-xs text-green-400 font-mono overflow-x-auto">${JSON.stringify(
+            data,
+            null,
+            2
+          )}</div>
+        `;
+        } catch (error) {
+          const endTime = performance.now();
+          const duration = Math.round(endTime - startTime);
+
+          requestCount++;
+          errorCount++;
+          totalTime += duration;
+          updateStats();
+
+          responseItem.style.borderColor = "rgba(239, 68, 68, 0.5)";
+          responseItem.innerHTML = `
+          <div class="text-xs text-slate-500 mb-2">${timestamp} - Error after ${duration}ms</div>
+          <div class="bg-slate-950/80 rounded p-3 text-xs text-red-400 font-mono">Error: ${error.message}</div>
+        `;
+        }
+      }
+
+      async function fetchMultiple(count) {
+        const promises = [];
+        for (let i = 0; i < count; i++) {
+          promises.push(fetchHello());
+        }
+        await Promise.all(promises);
+      }
+
+      function clearResponses() {
+        document.getElementById("responses").innerHTML = "";
+        requestCount = 0;
+        successCount = 0;
+        errorCount = 0;
+        totalTime = 0;
+        updateStats();
+      }
+    </script>
+  </body>
+</html>
